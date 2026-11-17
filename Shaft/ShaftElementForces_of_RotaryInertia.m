@@ -4,3 +4,5 @@ function y = ShaftElementForces_of_RotaryInertia(min,max,d_FAI_2,Form_esh1_lamud
 a = 2*ROUeshi*Iseshimo*int(Form_esh1_lamuda.',min,max);
 y = -a*d_FAI_2;
 end
+%%
+%这部分来自截面总转角速度项d((dT)/d·q)/dt 

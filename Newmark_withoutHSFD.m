@@ -29,7 +29,7 @@ A5 = 0.5*dt*(o/p-2);
 A6 = (o/p)-1;
 %%
 Output = zeros(500,5);
-for T = dt:dt:10
+for T = dt:dt:0.1
     F_ro_T = double(subs(F_ro,t,T));
     K_ro_T = double(subs(K_ro,t,T));
     C_ro_T = double(subs(C_ro,t,T));

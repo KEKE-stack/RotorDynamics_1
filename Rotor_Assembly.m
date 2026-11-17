@@ -57,7 +57,7 @@ d_Xo = diff(Xo);d_Xo_2 = diff(Xo,2);
 Yo = -(Xog*sin(afa)-Yog*cos(afa))*cos(beta)+Zog*sin(beta);
 d_Yo = diff(Yo);d_Yo_2 = diff(Yo,2);
 Zo = ((Xog*sin(afa)-Yog*cos(afa))*sin(beta)+Zog*cos(beta))*cos(gama)+(Xog*cos(afa)+Yog*sin(afa))*sin(gama);
-d_Zo = diff(Zo);d_Zo_2 = diff(Zo,2);
+d_Zo = diff(Zo);d_Zo_2 = diff(Zo,2);%把动坐标原点在固定坐标系的位置分量转化成在动坐标系的位置分量
 %%
 %%由于求导会导致缩维，所以提前预置求导的值
 d_FAI = diff(FAI);
@@ -143,7 +143,7 @@ Fesh12_lamuda = Fesh5_lamuda;
 Fesh_lamuda_all = Matrix_Assembly_2(Fesh1_lamuda,Fesh2_lamuda,Fesh3_lamuda,Fesh4_lamuda,Fesh5_lamuda,Fesh6_lamuda,Fesh7_lamuda,Fesh8_lamuda,Fesh9_lamuda,Fesh10_lamuda,Fesh11_lamuda,Fesh12_lamuda);
 % writematrix(double(subs(Fesh_lamuda_all,t,0)),'Fesh_lamuda_all.xls');
 %%
-%%返回轴单元1、2、3和4的由支撑运动产生的力
+%%返回轴单元1、2、3和4的由支撑运动产生的力  参考系 R(支撑/基座)运动在轴单元上产生的等效节点力
 Fesh1_su = ShaftElementForces_of_support(0,Lesh1,Lesh1,d_FAI,l,Wx,d_Wx,Wy,d_Wy,Wz,d_Wz,Form_esh1_u,Form_esh1_v,Form_esh1_w,Form_esh1_xita,Form_esh1_lamuda,Form_esh1_posai,ROUeshi,Sesh1,I1,Xo,d_Xo,d_Xo_2,Yo,d_Yo,d_Yo_2,Zo,d_Zo,d_Zo_2);
 Fesh2_su = Fesh1_su;
 Fesh3_su = Fesh1_su;

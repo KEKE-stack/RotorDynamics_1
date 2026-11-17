@@ -16,6 +16,7 @@ M_ro_T = double(subs(M_ro,t,T));%初始化质量矩阵
 DETA_ro_2 = double(M_ro_T^(-1) * (F_ro_T - C_ro_HSFD * DETA_ro_1 - K_ro_T * DETA_ro_0));%加速度
 F_be_output = -K_be_all * DETA_ro_0 - HSFD(DETA_ro_1) * DETA_ro_1;%力
 Output= [T DETA_ro_0(49) DETA_ro_0(51) DETA_ro_0(73) DETA_ro_0(75) F_be_output(73) F_be_output(75)];
+if isfile('OutputwithHSFD-1585.2.xlsx'), delete('OutputwithHSFD-1585.2.xlsx'); end
 writematrix(Output,'OutputwithHSFD-1585.2.xlsx');%保存初始状态
 %%
 %%选取参数o、p,计算积分常数
@@ -29,7 +30,7 @@ A5 = 0.5*dt*(o/p-2);
 A6 = (o/p)-1;
 %%
 Output = zeros(1000,7);
-for T = dt:dt:10
+for T = dt:dt:0.1
     F_ro_T = double(subs(F_ro,t,T));
     K_ro_T = double(subs(K_ro,t,T));
     C_ro_T = double(subs(C_ro,t,T));

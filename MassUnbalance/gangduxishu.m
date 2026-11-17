@@ -3,7 +3,7 @@ function [Kuu,Kuv,Kuw,Kuxita,Kulamuda,Kuposai,Kvu,Kvv,Kvw,Kvlamuda,Kwu,Kwv,Kww,K
 %依次输入转子相对于地面的转速W在xyz方向分量，质量不平衡与轴心距离Rmu，质量不平衡有限元素向量x_，z_，转子自转转速FAI，转子绝对位置坐标Xo,Yo,Zo,质量不平衡相对转子坐标原点的距离Ymu。
 Kuu = Wy^2+Wz^2;
 Kuv = -d_Wz+Wx*Wy;
-Kuw = d_Wy+Wx*Wz;
+Kuw = d_Wy+Wx*Wz;%旋转坐标系和转子的牵连项（角加速度和向心加速度）
 Kuxita = -2*x_*d_FAI*Wz-z_*Kuv;
 Kulamuda = -x_*Kuw-z_*(Kuu+2*d_FAI*Wy);
 Kuposai = -2*z_*d_FAI*Wz+x_*Kuv;
