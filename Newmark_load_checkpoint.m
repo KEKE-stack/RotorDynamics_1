@@ -1,0 +1,19 @@
+function [step, results, state] = Newmark_load_checkpoint(filename, settings, output_size, ndof)
+% Validate the saved step, output columns, and full Newmark state.
+if ~isfile(filename)
+    error('Newmark:CheckpointMissing', 'Checkpoint file not found: %s', filename);
+end
+saved = load(filename, 'settings', 'step', 'results', 'state');
+if ~all(isfield(saved, {'settings', 'step', 'results', 'state'})) || ...
+        ~isequal(saved.settings, settings) || ...
+        ~isscalar(saved.step) || saved.step ~= fix(saved.step) || ...
+        saved.step < 0 || saved.step >= output_size(1) || ...
+        ~isequal(size(saved.results), [saved.step+1 output_size(2)]) || ...
+        ~isequal(size(saved.state), [ndof 3])
+    error('Newmark:CheckpointMismatch', ...
+        'Checkpoint does not match the current simulation: %s', filename);
+end
+step = saved.step;
+results = saved.results;
+state = saved.state;
+end

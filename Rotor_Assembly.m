@@ -202,3 +202,7 @@ M_ro = Mesh_all+Memu;
 K_ro = Kesh_all+K_be_all+Kemu;
 C_ro = Cesh_all+Cemu;
 F_ro = Fesh_lamuda_all+Fesh_su_all+Weight_all+Femu+Femu_su;%组合质量不平衡矩阵至总矩阵
+M_fun = matlabFunction(M_ro, 'Vars', {t});
+C_fun = matlabFunction(C_ro, 'Vars', {t});
+K_fun = matlabFunction(K_ro, 'Vars', {t});
+F_fun = matlabFunction(F_ro, 'Vars', {t});

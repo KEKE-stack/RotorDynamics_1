@@ -11,14 +11,12 @@ support_node = 13;    % 轴向支撑所在节点（目前模型的轴向刚度�
 t_ramp   = 0.05;     % 钻压从0加到WOB的时间 (s)
 dt       = 0.0001;   % 时间步长
 T_end    = 1;        % 计算总时长 (s)
-nsave    = 1000;     % 每累计多少步写一次excel
 out_file = 'OutputwithHSFD_WOB.xlsx';
 %% ============================
 
 WOB_use = WOB*use_WOB;
 bit_dof = 6*(bit_node-1) + 2;   % 钻头节点的轴向自由度
 N = round(T_end/dt);
-if isfile(out_file), delete(out_file); end
 
 % 几何刚度（单位拉力），只算一次
 if use_WOB && use_Kgeo
@@ -50,7 +48,8 @@ M_ro_T = getM(T);
 DETA_ro_2 = M_ro_T \ (F_ro_T - C_ro_HSFD*DETA_ro_1 - K_ro_T*DETA_ro_0);   % 加速度
 F_be_output = -K_be_all*DETA_ro_0 - HSFD(DETA_ro_1)*DETA_ro_1;
 % 列：T, 节点9 x, 节点9 z, 节点13 x, 节点13 z, 轴承力x, 轴承力z, 钻头节点轴向位移
-writematrix([T DETA_ro_0(49) DETA_ro_0(51) DETA_ro_0(73) DETA_ro_0(75) F_be_output(73) F_be_output(75) DETA_ro_0(bit_dof)], out_file);
+Output = zeros(N+1,8);
+Output(1,:) = [T DETA_ro_0(49) DETA_ro_0(51) DETA_ro_0(73) DETA_ro_0(75) F_be_output(73) F_be_output(75) DETA_ro_0(bit_dof)];
 
 %% Newmark 积分常数
 o = 0.6;
@@ -63,9 +62,27 @@ A5 = 0.5*dt*(o/p - 2);
 A6 = (o/p) - 1;
 
 %% 时间积分
-Output = zeros(nsave,8);
-j = 0;
-for step = 1:N
+% Time-based checkpoints use wall-clock seconds.
+checkpoint_interval = 10 * 60;
+checkpoint_file = [out_file(1:end-5) '.checkpoint.mat'];
+checkpoint_settings = [dt N o p use_WOB use_Kgeo WOB bit_node support_node t_ramp];
+start_step = 1;
+if exist('resume_newmark','var') && isequal(resume_newmark,true)
+    [saved_step, saved_output, saved_state] = Newmark_load_checkpoint( ...
+        checkpoint_file, checkpoint_settings, size(Output), numel(DETA_ro_0));
+    Output(1:saved_step+1,:) = saved_output;
+    T = saved_output(end,1);
+    DETA_ro_0 = saved_state(:,1);
+    DETA_ro_1 = saved_state(:,2);
+    DETA_ro_2 = saved_state(:,3);
+    start_step = saved_step + 1;
+elseif isfile(checkpoint_file)
+    % Replace an older run's checkpoint before starting a fresh run.
+    Newmark_save_checkpoint(checkpoint_file, checkpoint_settings, 0, Output(1,:), ...
+        [DETA_ro_0 DETA_ro_1 DETA_ro_2]);
+end
+checkpoint_timer = tic;
+for step = start_step:N
     T = step*dt;
     [F_wob, s] = WOB_force(T, WOB_use, t_ramp, bit_node, support_node);
     F_ro_T = getF(T) + F_wob;                    % 外力 + 钻压
@@ -85,15 +102,12 @@ for step = 1:N
     DETA_ro_2 = DETA_ro_2_dt;
     F_be_output = -K_be_all*DETA_ro_0 - HSFD(DETA_ro_1)*DETA_ro_1;
     % 记录并分批写入
-    j = j + 1;
-    Output(j,:) = [T DETA_ro_0(49) DETA_ro_0(51) DETA_ro_0(73) DETA_ro_0(75) F_be_output(73) F_be_output(75) DETA_ro_0(bit_dof)];
-    if j == nsave
-        writematrix(Output, out_file, 'WriteMode', 'append');
-        Output = zeros(nsave,8);
-        j = 0;
+    Output(step+1,:) = [T DETA_ro_0(49) DETA_ro_0(51) DETA_ro_0(73) DETA_ro_0(75) F_be_output(73) F_be_output(75) DETA_ro_0(bit_dof)];
+    if step == N || toc(checkpoint_timer) >= checkpoint_interval
+        Newmark_save_checkpoint(checkpoint_file, checkpoint_settings, step, ...
+            Output(1:step+1,:), [DETA_ro_0 DETA_ro_1 DETA_ro_2]);
+        checkpoint_timer = tic;
     end
 end
-if j > 0   % 写入最后不足一批的数据
-    writematrix(Output(1:j,:), out_file, 'WriteMode', 'append');
-end
+writematrix(Output, out_file, 'WriteMode', 'overwritesheet');
 disp(['计算完成，结果保存在 ' out_file]);
